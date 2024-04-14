@@ -1,0 +1,6 @@
+vim.cmd('source $HOME/.config/nvim/lua/init.vim')
+require('plugin')
+require('plugin-config.nvim_tree')
+require('plugin-config.lualine')
+require('plugin-config.gruvbox')
+require('plugin-config.coc')
