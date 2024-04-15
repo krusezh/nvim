@@ -20,3 +20,5 @@ set relativenumber
 set background=dark
 set fileencoding=utf-8
 set backspace=indent,eol,start
+
+au BufNewFile,BufRead *.go setlocal noet ts=4 sw=4 sts=4

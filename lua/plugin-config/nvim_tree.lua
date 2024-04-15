@@ -15,19 +15,25 @@ end
 
 require("nvim-tree").setup({
     on_attach = my_on_attach,
-    sort = {
-        sorter = "case_sensitive",
-    },
-    git = {
-        enable = true,
-    },
+    sort_by = "case_sensitive",
+        -- 是否显示 git 状态
+        git = {
+            enable = true,
+        },
+        -- 过滤文件
+        filters = {
+            dotfiles = true, -- 过滤 dotfile
+            custom = { "node_modules" }, -- 其他过滤目录
+        },
     view = {
+        side = "left", -- 文件浏览器展示位置
+        number = false, -- 行号是否显示
+        relativenumber = false,
+        signcolumn = "yes", -- 显示图标
         width = 30,
     },
     renderer = {
         group_empty = true,
     },
-    filters = {
-        dotfiles = true,
-    },
 })
+
