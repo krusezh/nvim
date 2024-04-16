@@ -16,6 +16,7 @@ lspsaga.setup({
 	code_action = {
 		num_showcut = true,
 		show_server_name = false,
+		extend_gitsigns = true,
 		keys = {
 			quit = "q",
 			exec = "<CR>",
