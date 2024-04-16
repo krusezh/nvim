@@ -1,5 +1,6 @@
 -- Setup language servers.
 local lspconfig = require("lspconfig")
+lspconfig.clangd.setup({})
 lspconfig.pyright.setup({})
 lspconfig.tsserver.setup({})
 lspconfig.lua_ls.setup({})
@@ -23,6 +24,13 @@ local on_attach = function(client, bufnr)
 		})
 	end
 end
+-- C / C++
+lspconfig.clangd.setup({
+	cmd = { "clangd", "--background-index", "--offset-encoding=utf-16" },
+	on_attach = on_attach,
+	capabilities = capabilities,
+})
+
 -- GoLang
 lspconfig.gopls.setup({
 	cmd = { "gopls" },
