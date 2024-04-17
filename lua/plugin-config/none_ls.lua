@@ -9,33 +9,21 @@ null_ls.setup({
 		completion.spell,
 		formatting.shfmt,
 		formatting.stylua,
+		formatting.asmfmt,
 		formatting.goimports,
-		formatting.prettier.with({
-			filetypes = {
-				"javascript",
-				"javascriptreact",
-				"typescript",
-				"typescriptreact",
-				"vue",
-				"css",
-				"scss",
-				"less",
-				"html",
-				"json",
-				"yaml",
-				"graphql",
-				"astro",
-				"markdown",
-			},
-			extra_filetypes = { "njk" },
-			prefer_local = "node_modules/.bin",
-		}),
+		formatting.prettier,
 		-- Python
 		-- pip install black
 		-- asdf reshim python
 		formatting.black.with({ extra_args = { "--fast" } }),
+		-- diagnostics ----------------------
+		-- diagnostics.revive,
+		-- diagnostics.staticcheck,
+		diagnostics.golangci_lint,
 		-- code actions ---------------------
+		code_actions.impl,
 		-- code_actions.gitsigns,
+		code_actions.gomodifytags,
 	},
 	-- you can reuse a shared lspconfig on_attach callback here
 	on_attach = function(client, bufnr)

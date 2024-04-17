@@ -38,16 +38,14 @@ lspconfig.gopls.setup({
 	capabilities = capabilities,
 	settings = {
 		gopls = {
+			usePlaceholders = true,
 			experimentalPostfixCompletions = true,
 			analyses = {
 				unusedparams = true,
 				shadow = true,
 			},
-			staticcheck = true,
+			-- staticcheck = true,
 		},
-	},
-	init_options = {
-		usePlaceholders = true,
 	},
 })
 -- Rust
@@ -60,6 +58,33 @@ lspconfig.rust_analyzer.setup({
 		["rust-analyzer"] = {},
 	},
 })
+
+vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
+	-- Enable underline, use default values
+	underline = true,
+	-- disable virtual text
+	virtual_text = true,
+
+	-- show signs
+	-- signs = true,
+
+	-- Use a function to dynamically turn signs off
+	-- and on, using buffer local variables
+	signs = function(namespace, bufnr)
+		return vim.b[bufnr].show_signs == true
+	end,
+
+	-- delay update diagnostics
+	update_in_insert = false,
+	-- display_diagnostic_autocmds = { "InsertLeave" },
+})
+
+-- 对错误警告的图标
+local signs = { Error = "󰅙", Info = "󰋼", Hint = "󰌵", Warn = "" }
+for type, icon in pairs(signs) do
+	local hl = "DiagnosticSign" .. type
+	vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
+end
 
 -- Global mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
