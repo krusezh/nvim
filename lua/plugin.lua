@@ -29,7 +29,7 @@ require("lazy").setup({
 	{ "lewis6991/gitsigns.nvim" },
 	{ "williamboman/mason.nvim" },
 	{ "williamboman/mason-lspconfig.nvim" },
-	{ "nvim-treesitter/nvim-treesitter-context" },
+	-- { "nvim-treesitter/nvim-treesitter-context" },
 	{ "nvim-treesitter/nvim-treesitter", build = ":TSUpdate" },
 	{ "nvimtools/none-ls.nvim", requires = "nvim-lua/plenary.nvim" },
 	{ "windwp/nvim-autopairs", event = "InsertEnter", config = true },
