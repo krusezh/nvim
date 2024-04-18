@@ -29,6 +29,7 @@ require("lazy").setup({
 	{ "lewis6991/gitsigns.nvim" },
 	{ "williamboman/mason.nvim" },
 	{ "williamboman/mason-lspconfig.nvim" },
+	{ "j-hui/fidget.nvim", tag = "v1.0.0" },
 	-- { "nvim-treesitter/nvim-treesitter-context" },
 	{ "nvim-treesitter/nvim-treesitter", build = ":TSUpdate" },
 	{ "nvimtools/none-ls.nvim", requires = "nvim-lua/plenary.nvim" },
@@ -37,6 +38,12 @@ require("lazy").setup({
 	{ "nvim-lualine/lualine.nvim", dependencies = { "nvim-tree/nvim-web-devicons" } },
 	{ "akinsho/bufferline.nvim", version = "*", dependencies = "nvim-tree/nvim-web-devicons" },
 	{ "nvim-tree/nvim-tree.lua", version = "*", lazy = false, dependencies = { "nvim-tree/nvim-web-devicons" } },
+	-- {
+	-- 	"linrongbin16/lsp-progress.nvim",
+	-- 	config = function()
+	-- 		require("lsp-progress").setup()
+	-- 	end,
+	-- },
 	{
 		"akinsho/toggleterm.nvim",
 		version = "*",
