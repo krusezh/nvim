@@ -19,12 +19,12 @@ require("copilot").setup({
 		auto_trigger = true,
 		debounce = 75,
 		keymap = {
-			accept = "<RIGHT>",
+			accept = "<C-l>",
 			accept_word = false,
 			accept_line = false,
-			next = "<C-[>",
-			prev = "<C-]>",
-			dismiss = "<ESC>",
+			next = "<C-j>",
+			prev = "<C-k>",
+			dismiss = "<C-h>",
 		},
 	},
 	filetypes = {

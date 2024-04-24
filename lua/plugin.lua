@@ -29,7 +29,7 @@ require("lazy").setup({
 	{ "lewis6991/gitsigns.nvim" },
 	{ "williamboman/mason.nvim" },
 	{ "williamboman/mason-lspconfig.nvim" },
-	{ "j-hui/fidget.nvim", tag = "v1.0.0" },
+	{ "j-hui/fidget.nvim", version = "*" },
 	-- { "nvim-treesitter/nvim-treesitter-context" },
 	{ "nvim-treesitter/nvim-treesitter", build = ":TSUpdate" },
 	{ "nvimtools/none-ls.nvim", requires = "nvim-lua/plenary.nvim" },
