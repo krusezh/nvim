@@ -2,7 +2,7 @@
 local lspconfig = require("lspconfig")
 lspconfig.clangd.setup({})
 lspconfig.pyright.setup({})
-lspconfig.tsserver.setup({})
+lspconfig.ts_ls.setup({})
 lspconfig.lua_ls.setup({})
 
 local capabilities = require("cmp_nvim_lsp").default_capabilities() --nvim-cmp
