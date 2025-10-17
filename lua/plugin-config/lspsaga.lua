@@ -1,56 +1,30 @@
-local lspsaga = require("lspsaga")
-lspsaga.setup({
+require("lspsaga").setup({
+    -- UI 界面设置
     ui = {
         border = "rounded",
-        devicon = true,
-        foldericon = true,
-        title = true,
+        -- 自定义图标
         expand = "⊞",
         collapse = "⊟",
         code_action = "💡",
         actionfix = " ",
         lines = { "┗", "┣", "┃", "━", "┏" },
-        kind = nil,
         imp_sign = "󰳛 ",
     },
-    code_action = {
-        num_showcut = true,
-        show_server_name = false,
-        extend_gitsigns = true,
-        keys = {
-            quit = "q",
-            exec = "<CR>",
-        },
-    },
+
+    -- 代码操作灯泡图标的防抖设置 (ms)
     lightbulb = {
-        enable = true,
-        -- enable_in_insert = true,
-        sign = false,
-        sign_priority = 40,
         debounce = 10,
-        virtual_text = true,
     },
-    rename = {
-        quit = "<C-c>",
-        exec = "<CR>",
-        mark = "x",
-        confirm = "<CR>",
-        in_select = true,
-    },
+
+    -- 在 winbar 中显示代码结构
     symbol_in_winbar = {
         enable = true,
-        separator = "/",
+        separator = " / ",
         ignore_patterns = {},
         hide_keyword = true,
         show_file = true,
         folder_level = 2,
         respect_root = false,
         color_mode = true,
-    },
-    implement = {
-        enable = true,
-        sign = true,
-        virtual_text = true,
-        priority = 100,
     },
 })

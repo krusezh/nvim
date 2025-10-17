@@ -1,4 +1,9 @@
+-- =============================================================================
+-- 语法高亮引擎 (nvim-treesitter) 设置
+-- =============================================================================
+
 require("nvim-treesitter.configs").setup({
+	-- 确保安装以下语言的解析器
 	ensure_installed = {
 		"c",
 		"lua",
@@ -17,9 +22,7 @@ require("nvim-treesitter.configs").setup({
 		"rust",
 		"toml",
 	},
-	sync_install = false,
-	highlight = { enable = true },
-	indent = { enable = true },
+
 	-- 启用增量选择模块
 	incremental_selection = {
 		enable = true,
@@ -32,9 +35,9 @@ require("nvim-treesitter.configs").setup({
 	},
 })
 
--- 开启 Folding 模块
+-- 开启基于 Treesitter 的代码折叠
 vim.opt.foldmethod = "expr"
 vim.opt.foldexpr = "nvim_treesitter#foldexpr()"
--- 默认不要折叠
--- https://stackoverflow.com/questions/8316139/how-to-set-the-default-to-unfolded-when-you-open-a-file
+
+-- 默认不折叠代码
 vim.opt.foldlevel = 99

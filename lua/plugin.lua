@@ -1,3 +1,8 @@
+-- =============================================================================
+-- 插件管理 (lazy.nvim)
+-- =============================================================================
+
+-- 自动安装 lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
     vim.fn.system({
@@ -9,74 +14,79 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
         lazypath,
     })
 end
-
 vim.opt.rtp:prepend(lazypath)
+
+-- 设置LSP日志级别，减少不必要的日志输出
 vim.lsp.set_log_level("warn")
 
+-- 一个辅助函数，用于简化插件配置的加载
 local function config_plugin(name)
     return function()
         require("plugin-config." .. name)
     end
 end
 
+-- lazy.nvim 设置
 require("lazy").setup({
-    -- 补全引擎 (nvim-cmp)
+    -- =========================================================================
+    -- A. 补全引擎
+    -- =========================================================================
     {
         "hrsh7th/nvim-cmp",
         event = "InsertEnter",
         config = config_plugin("nvim_cmp"),
+        dependencies = {
+            "hrsh7th/cmp-path",
+            "hrsh7th/cmp-vsnip",
+            "hrsh7th/cmp-buffer",
+            "hrsh7th/cmp-cmdline",
+            "hrsh7th/cmp-nvim-lsp",
+            "hrsh7th/cmp-nvim-lsp-signature-help",
+            "hrsh7th/vim-vsnip",
+            { "onsails/lspkind.nvim", event = "InsertEnter" }, -- 美化补全项
+        },
     },
-    { "hrsh7th/cmp-path",                    event = "InsertEnter" },
-    { "hrsh7th/cmp-vsnip",                   event = "InsertEnter" },
-    { "hrsh7th/cmp-buffer",                  event = "InsertEnter" },
-    { "hrsh7th/cmp-cmdline",                 event = "InsertEnter" },
-    { "hrsh7th/cmp-nvim-lsp",                event = "InsertEnter" },
-    { "hrsh7th/cmp-nvim-lsp-signature-help", event = "InsertEnter" },
-    { "hrsh7th/vim-vsnip",                   event = "InsertEnter" },
 
-    -- 补全美化
-    { "onsails/lspkind.nvim",                event = "InsertEnter" },
-
-    -- 注释工具
-    { "numToStr/Comment.nvim",               event = "BufReadPre" },
-
-    -- LSP & 工具链
+    -- =========================================================================
+    -- B. LSP & 开发工具链
+    -- =========================================================================
     {
         "williamboman/mason.nvim",
         cmd = "Mason",
-        dependencies = {
-            "williamboman/mason-lspconfig.nvim",
-        },
         config = config_plugin("mason"),
     },
-    -- LSP 核心生态 (整合为一个单元以确保加载顺序)
+    {
+        "williamboman/mason-lspconfig.nvim",
+        dependencies = { "williamboman/mason.nvim" },
+        config = config_plugin("mason-lspconfig"),
+    },
     {
         "neovim/nvim-lspconfig",
-        event = "BufReadPre", -- 整个LSP生态系统在打开文件时加载
-        dependencies = {
-            "williamboman/mason.nvim",
-            "williamboman/mason-lspconfig.nvim",
-        },
-        -- config = config_plugin("nvim_lspconfig"),
-        config = function()
-            require("plugin-config.mason")
-            require("plugin-config.nvim_lspconfig")
-        end,
+        event = "BufReadPre",
+        dependencies = { "williamboman/mason-lspconfig.nvim" },
+        config = config_plugin("nvim_lspconfig"),
     },
     {
         "j-hui/fidget.nvim",
-        version = "*",
         event = "LspAttach",
         config = config_plugin("fidget"),
     },
     {
         "nvimtools/none-ls.nvim",
-        requires = "nvim-lua/plenary.nvim",
+        dependencies = { "nvim-lua/plenary.nvim" },
         event = "BufReadPre",
         config = config_plugin("none_ls"),
     },
+    {
+        "nvimdev/lspsaga.nvim",
+        event = "LspAttach",
+        dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
+        config = config_plugin("lspsaga"),
+    },
 
-    -- Git
+    -- =========================================================================
+    -- C. Git 工具
+    -- =========================================================================
     {
         "lewis6991/gitsigns.nvim",
         event = "BufReadPre",
@@ -89,19 +99,13 @@ require("lazy").setup({
         keys = { { "<leader>lg", "<cmd>LazyGit<cr>", desc = "LazyGit" } },
     },
 
-    -- 语法高亮
-    {
-        "nvim-treesitter/nvim-treesitter",
-        build = ":TSUpdate",
-        event = "BufReadPre",
-        config = config_plugin("nvim_treesitter"),
-    },
-
-    -- UI & 主题
+    -- =========================================================================
+    -- D. UI & 外观
+    -- =========================================================================
     {
         "ellisonleao/gruvbox.nvim",
-        lazy = false,    -- 确保在启动时立即加载
-        priority = 1000, -- 确保在其他UI插件前加载
+        lazy = false,
+        priority = 1000,
         config = config_plugin("gruvbox"),
     },
     {
@@ -114,7 +118,7 @@ require("lazy").setup({
         "akinsho/bufferline.nvim",
         version = "*",
         event = "VeryLazy",
-        dependencies = "nvim-tree/nvim-web-devicons",
+        dependencies = { "nvim-tree/nvim-web-devicons" },
     },
     {
         "nvim-tree/nvim-tree.lua",
@@ -124,47 +128,26 @@ require("lazy").setup({
         config = config_plugin("nvim_tree"),
     },
 
-    -- 自动配对
-    { "windwp/nvim-autopairs", event = "InsertEnter" },
-
-    -- 终端
+    -- =========================================================================
+    -- E. 核心功能增强
+    -- =========================================================================
     {
-        "akinsho/toggleterm.nvim",
-        version = "*",
-        keys = { "<c-\\>t", "<c-\\>a", "<c-\\>s" },
-        config = config_plugin("toggleterm"),
+        "nvim-treesitter/nvim-treesitter",
+        build = ":TSUpdate",
+        event = "BufReadPre",
+        config = config_plugin("nvim_treesitter"),
     },
-
-    -- 模糊搜索
     {
-        "nvim-telescope/telescope.nvim",
-        tag = "0.1.6",
-        cmd = "Telescope",
-        dependencies = {
-            "nvim-lua/plenary.nvim",
-
-            {
-                "nvim-telescope/telescope-fzf-native.nvim",
-                build =
-                "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build",
-            },
-        },
-        config = config_plugin("telescope"),
+        "windwp/nvim-autopairs",
+        event = "InsertEnter",
     },
-
-    -- LSP UI 增强
     {
-        "nvimdev/lspsaga.nvim",
-        event = "LspAttach",
-        dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
-        config = config_plugin("lspsaga"),
+        "numToStr/Comment.nvim",
+        event = "BufReadPre",
     },
-
-    -- 快速跳转
     {
         "folke/flash.nvim",
         event = "BufRead",
-        ---@type Flash.Config
         opts = {
             label = {
                 uppercase = false,
@@ -175,13 +158,35 @@ require("lazy").setup({
                 },
             },
         },
-        -- stylua: ignore
         keys = {
-            { "s",     mode = { "n", "x", "o" }, function() require("flash").jump() end,              desc = "Flash" },
-            { "S",     mode = { "n", "x", "o" }, function() require("flash").treesitter() end,        desc = "Flash Treesitter" },
-            { "r",     mode = "o",               function() require("flash").remote() end,            desc = "Remote Flash" },
-            { "R",     mode = { "o", "x" },      function() require("flash").treesitter_search() end, desc = "Treesitter Search" },
-            { "<c-s>", mode = { "c" },           function() require("flash").toggle() end,            desc = "Toggle Flash Search" },
+            { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash" },
+            { "S", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "Flash Treesitter" },
+            { "r", mode = "o", function() require("flash").remote() end, desc = "Remote Flash" },
+            { "R", mode = { "o", "x" }, function() require("flash").treesitter_search() end, desc = "Treesitter Search" },
+            { "<c-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "Toggle Flash Search" },
         },
+    },
+
+    -- =========================================================================
+    -- F. 其他工具
+    -- =========================================================================
+    {
+        "akinsho/toggleterm.nvim",
+        version = "*",
+        keys = { "<c-\\>t", "<c-\\>a", "<c-\\>s" },
+        config = config_plugin("toggleterm"),
+    },
+    {
+        "nvim-telescope/telescope.nvim",
+        tag = "0.1.6",
+        cmd = "Telescope",
+        dependencies = {
+            "nvim-lua/plenary.nvim",
+            {
+                "nvim-telescope/telescope-fzf-native.nvim",
+                build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build",
+            },
+        },
+        config = config_plugin("telescope"),
     },
 })
