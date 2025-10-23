@@ -127,6 +127,12 @@ require("lazy").setup({
         dependencies = { "nvim-tree/nvim-web-devicons" },
         config = config_plugin("nvim_tree"),
     },
+    {
+        "goolord/alpha-nvim",
+        event = "VimEnter",
+        dependencies = { "nvim-tree/nvim-web-devicons" },
+        config = config_plugin("alpha"),
+    },
 
     -- =========================================================================
     -- E. 核心功能增强
