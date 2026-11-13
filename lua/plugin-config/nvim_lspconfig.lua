@@ -1,184 +1,247 @@
-local lspconfig = require("lspconfig")
-local capabilities = require("cmp_nvim_lsp").default_capabilities() -- nvim-cmp
+-- =============================================================================
+-- LSP (Language Server Protocol) core setup
+-- =============================================================================
 
--- =============================================================================
--- on_attach 函数: 在 LSP 附加到缓冲区时执行的通用回调
--- =============================================================================
-local on_attach = function(client, bufnr)
-	-- 为当前缓冲区启用“保存时自动格式化”
-	-- if client.supports_method("textDocument/formatting") then
-	-- 	local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
-	-- 	vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
-	-- 	vim.api.nvim_create_autocmd("BufWritePre", {
-	-- 		group = augroup,
-	-- 		buffer = bufnr,
-	-- 		callback = function()
-	-- 			-- on 0.8, you should use vim.lsp.buf.format({ bufnr = bufnr }) instead
-	-- 			-- on later neovim version, you should use vim.lsp.buf.format({ async = false }) instead
-	-- 			-- vim.lsp.buf.formatting_sync()
-	-- 			vim.lsp.buf.format({ async = false })
-	-- 		end,
-	-- 	})
-	-- end
+local mason_bin = vim.fn.stdpath("data") .. "/mason/bin"
+
+-- Prefer Mason-installed executables, falling back to the same command on PATH
+local function mason_cmd(name, args)
+  local path = mason_bin .. "/" .. name
+  local cmd
+
+  if vim.fn.executable(path) == 1 then
+    cmd = path
+  elseif vim.fn.executable(name) == 1 then
+    cmd = name
+  else
+    return nil
+  end
+
+  local full_cmd = { cmd }
+  if args then
+    vim.list_extend(full_cmd, args)
+  end
+  return full_cmd
 end
 
+-- Global client capabilities and defaults
+local capabilities = require("cmp_nvim_lsp").default_capabilities()
+-- Use UTF-16 offsets consistently so pyright and ruff agree
+capabilities.general = { positionEncodings = { "utf-16" } }
+
+vim.lsp.config("*", {
+  capabilities = capabilities,
+  root_markers = { ".git", ".hg", ".svn" },
+  flags = {
+    debounce_text_changes = 150,
+    allow_incremental_sync = true,
+  }
+})
+
+-- Format-on-save toggle
+if vim.g.lsp_format_on_save == nil then
+  vim.g.lsp_format_on_save = true
+end
+
+-- Toggle format-on-save at runtime
+vim.api.nvim_create_user_command("LspFormatToggle", function()
+  vim.g.lsp_format_on_save = not vim.g.lsp_format_on_save
+  local state = vim.g.lsp_format_on_save and "enabled" or "disabled"
+  vim.notify("LSP format on save: " .. state, vim.log.levels.INFO)
+end, {})
+
 -- =============================================================================
--- 各个语言服务器的配置
+-- Language server configurations
 -- =============================================================================
 
 -- Lua
--- lspconfig.lua_ls.setup({
---     capabilities = capabilities,
---     on_attach = on_attach,
---     settings = {
---         Lua = {
---             diagnostics = {
---                 globals = { "vim" },
---             },
---         },
---     },
--- })
-lspconfig.lua_ls.setup({
-	on_attach = on_attach,
-	capabilities = capabilities,
-	settings = {
-		Lua = {
-			-- 让语言服务器知道 "vim" 是一个全局变量，从而消除警告
-			diagnostics = {
-				globals = { "vim" },
-			},
-			-- 让 lsp 知道我们正在使用的 Neovim 版本，以便提供更准确的补全
-			-- runtime = {
-			-- 	version = "Neovim-0.11.2", -- 请根据您的 Neovim 版本调整
-			-- },
-			workspace = {
-				checkThirdParty = false,
-			},
-		},
-	},
+vim.lsp.config("lua_ls", {
+  cmd = mason_cmd("lua-language-server"),
+  settings = {
+    Lua = {
+      diagnostics = {
+        -- Treat `vim` as a global to avoid undefined-variable warnings
+        globals = { "vim" },
+      },
+      workspace = {
+        -- Don't check third-party libraries
+        checkThirdParty = false,
+      },
+      -- Default formatting: 2-space indentation
+      format = {
+        enable = true,
+        defaultConfig = {
+          indent_style = "space",
+          indent_size = "2",
+        },
+      },
+    },
+  },
 })
+vim.lsp.enable("lua_ls")
 
 -- C / C++
-lspconfig.clangd.setup({
-	cmd = { "clangd", "--background-index", "--offset-encoding=utf-16" },
-	capabilities = capabilities,
-	on_attach = on_attach,
+vim.lsp.config("clangd", {
+  cmd = { "clangd", "--background-index", "--offset-encoding=utf-16" }, -- Match the shared UTF-16 offset encoding
 })
+vim.lsp.enable("clangd")
 
--- GoLang
-lspconfig.gopls.setup({
-	cmd = { "gopls" },
-	capabilities = capabilities,
-	on_attach = on_attach,
-	settings = {
-		gopls = {
-			usePlaceholders = true,
-			experimentalPostfixCompletions = true,
-			analyses = {
-				unusedparams = true,
-				shadow = true,
-			},
-		},
-	},
+-- Go
+vim.lsp.config("gopls", {
+  cmd = mason_cmd("gopls"),
+  settings = {
+    gopls = {
+      usePlaceholders = true,
+      experimentalPostfixCompletions = true,
+      analyses = {
+        unusedparams = true,
+        shadow = true,
+      },
+    },
+  },
 })
+vim.lsp.enable("gopls")
 
 -- Python
-lspconfig.pyright.setup({
-	capabilities = capabilities,
-	on_attach = on_attach,
+vim.lsp.config("pyright", {
+  cmd = mason_cmd("pyright-langserver", { "--stdio" }),
+  root_markers = { "pyproject.toml", "pyrightconfig.json", "setup.py", "setup.cfg", "requirements.txt", ".git" },
 })
+vim.lsp.enable("pyright")
 
--- TypeScript / JavaScript
-lspconfig.ts_ls.setup({
-	capabilities = capabilities,
-	on_attach = on_attach,
+-- Ruff: linting and auto-fixes
+vim.lsp.config("ruff", {
+  cmd = mason_cmd("ruff", { "server" }),
+  root_markers = { "pyproject.toml", "ruff.toml", ".ruff.toml", ".git" },
 })
+vim.lsp.enable("ruff")
 
 -- Rust
-lspconfig.rust_analyzer.setup({
-	cmd = { "rust-analyzer" },
-	capabilities = capabilities,
-	on_attach = on_attach,
-	settings = {
-		["rust-analyzer"] = {},
-	},
+vim.lsp.config("rust_analyzer", {
+  cmd = mason_cmd("rust-analyzer"),
+  settings = {
+    ["rust-analyzer"] = {}, -- Use default settings
+  },
 })
+vim.lsp.enable("rust_analyzer")
 
 -- =============================================================================
--- LSP 诊断信息的美化配置
+-- Diagnostic display settings
 -- =============================================================================
-
--- vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
--- 	underline = true,
--- 	virtual_text = true,
--- 	signs = function(namespace, bufnr)
--- 		return vim.b[bufnr].show_signs == true
--- 	end,
--- 	update_in_insert = false,
--- })
---
--- -- 定义错误、警告等图标
--- local signs = { Error = "󰅙", Info = "󰋼", Hint = "󰌵", Warn = "" }
--- for type, icon in pairs(signs) do
--- 	local hl = "DiagnosticSign" .. type
--- 	vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
--- end
-
 vim.diagnostic.config({
-	-- 关闭虚拟文本（virtual_text）
-	-- 如果想看到单行错误信息，可以设置为 true
-	virtual_text = true,
-
-	-- 在代码下方显示波浪线
-	underline = true,
-
-	-- 在插入模式下不实时更新诊断信息
-	update_in_insert = false,
-
-	-- 设置诊断信息的严重性级别排序
-	severity_sort = true,
-
-	-- 配置诊断图标
-	signs = {
-		active = true, -- 开启图标显示
-		text = {
-			[vim.diagnostic.severity.ERROR] = "󰅙", -- 错误图标
-			[vim.diagnostic.severity.WARN] = "", -- 警告图标
-			[vim.diagnostic.severity.INFO] = "󰋼", -- 信息图标
-			[vim.diagnostic.severity.HINT] = "󰌵", -- 提示图标
-		},
-	},
+  virtual_text = true,
+  underline = true,
+  update_in_insert = false,
+  severity_sort = true,
+  signs = {
+    active = true,
+    text = {
+      [vim.diagnostic.severity.ERROR] = "󰅙",
+      [vim.diagnostic.severity.WARN] = "",
+      [vim.diagnostic.severity.INFO] = "󰋼",
+      [vim.diagnostic.severity.HINT] = "󰌵",
+    },
+  },
 })
 
 -- =============================================================================
--- LSP 快捷键 (这些是在 keybindings.lua 中定义的，这里只是确保 LSP 附加后功能正常)
+-- LSP buffer setup
 -- =============================================================================
+-- Enable omnifunc completion when a server attaches
 vim.api.nvim_create_autocmd("LspAttach", {
-	group = vim.api.nvim_create_augroup("UserLspConfig", {}),
-	callback = function(ev)
-		-- 开启 omnifunc 代码补全 (由 <c-x><c-o> 触发)
-		vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
+  group = vim.api.nvim_create_augroup("UserLspConfig", {}),
+  callback = function(ev)
+    local client = vim.lsp.get_client_by_id(ev.data.client_id)
+    local bufnr = ev.buf
 
-		-- 可以在这里定义 LSP 相关的快捷键，但您的配置已经将它们放在了 keybindings.lua 中
-		-- 这也是一种好的实践，只要确保它们能正常工作即可
-	end,
-})
+    vim.bo[bufnr].omnifunc = "v:lua.vim.lsp.omnifunc"
 
--- 您原有的全局诊断快捷键，保留在这里没有问题
-vim.keymap.set("n", "<space>e", vim.diagnostic.open_float)
-vim.keymap.set("n", "[d", vim.diagnostic.goto_prev)
-vim.keymap.set("n", "]d", vim.diagnostic.goto_next)
-vim.keymap.set("n", "<space>q", vim.diagnostic.setloclist)
+    -- Ruff: apply source.fixAll.ruff fixes on save
+    if client and client.name == "ruff" then
+      local group = vim.api.nvim_create_augroup("RuffFixOnSave", {})
+      vim.api.nvim_clear_autocmds({ group = group, buffer = bufnr })
 
--- =============================================================================
--- [!] 全局唯一的“保存时自动格式化”配置
--- =============================================================================
-local format_augroup = vim.api.nvim_create_augroup("LspFormatOnSave", { clear = true })
+      vim.api.nvim_create_autocmd("BufWritePre", {
+        group = group,
+        buffer = bufnr,
+        callback = function()
+          if not vim.bo[bufnr].modifiable or vim.bo[bufnr].buftype ~= "" or vim.bo[bufnr].readonly then
+            return
+          end
 
-vim.api.nvim_create_autocmd("BufWritePre", {
-	group = format_augroup,
-	pattern = "*", -- 对所有文件生效
-	callback = function()
-		vim.lsp.buf.format({ async = false })
-	end,
+          -- Request and apply the first matching code action
+          local function apply_code_action(kind)
+            local params = {
+              textDocument = vim.lsp.util.make_text_document_params(bufnr),
+              range = {
+                start = { line = 0, character = 0 },
+                ["end"] = { line = 0, character = 0 },
+              },
+              context = {
+                only = { kind },
+                diagnostics = {},
+              },
+            }
+
+            local resp = client.request_sync("textDocument/codeAction", params, 2000, bufnr)
+            if not resp or not resp.result then
+              return
+            end
+
+            for _, action in ipairs(resp.result) do
+              local action_kind = action.kind or ""
+              if action_kind == kind or vim.startswith(action_kind, kind) then
+                local resolved_action = action
+                if (not action.edit and not action.command) and client:supports_method("codeAction/resolve") then
+                  local resolved = client.request_sync("codeAction/resolve", action, 2000, bufnr)
+                  if resolved and resolved.result then
+                    resolved_action = resolved.result
+                  end
+                end
+
+                if resolved_action.edit then
+                  vim.lsp.util.apply_workspace_edit(resolved_action.edit, client.offset_encoding)
+                end
+
+                local command = resolved_action.command
+                if command then
+                  if type(command) == "table" then
+                    client.request_sync(
+                      "workspace/executeCommand",
+                      { command = command.command, arguments = command.arguments },
+                      2000,
+                      bufnr
+                    )
+                  else
+                    client.request_sync(
+                      "workspace/executeCommand",
+                      { command = command, arguments = resolved_action.arguments },
+                      2000,
+                      bufnr
+                    )
+                  end
+                end
+                return
+              end
+            end
+          end
+
+          apply_code_action("source.fixAll.ruff")
+        end,
+      })
+    end
+
+    -- Format on save (only for clients with textDocument/formatting support)
+    if client and client:supports_method("textDocument/formatting") then
+      vim.api.nvim_create_autocmd("BufWritePre", {
+        buffer = bufnr,
+        callback = function()
+          if vim.g.lsp_format_on_save == false then
+            return
+          end
+          vim.lsp.buf.format({ bufnr = bufnr, id = client.id })
+        end,
+      })
+    end
+  end,
 })

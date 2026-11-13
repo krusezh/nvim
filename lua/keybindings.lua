@@ -1,39 +1,42 @@
+-- =============================================================================
+-- Global keymaps
+-- =============================================================================
+
 local opt = {
 	noremap = true,
 	silent = true,
 }
 
+-- File explorer (NvimTree)
 vim.keymap.set("n", "<leader>d", ":NvimTreeToggle<CR>", opt)
--- rename
-vim.keymap.set("n", "<leader>r", ":Lspsaga rename<CR>", opt)
--- code action
-vim.keymap.set("n", "<leader>a", ":Lspsaga code_action<CR>", opt)
--- go xx
-vim.keymap.set("n", "gd", ":Lspsaga goto_definition<CR>", opt)
-vim.keymap.set("n", "K", ":Lspsaga hover_doc<CR>", opt)
-vim.keymap.set("n", "gf", ":Lspsaga finder def+ref<CR>", opt)
-vim.keymap.set("n", "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>", opt)
-vim.keymap.set("n", "gi", "<cmd>lua vim.lsp.buf.implementation()<CR>", opt)
-vim.keymap.set("n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opt)
--- diagnostic
-vim.keymap.set("n", "gp", "<cmd>Lspsaga show_line_diagnostics<CR>", opt)
-vim.keymap.set("n", "gk", "<cmd>lua vim.diagnostic.goto_prev()<CR>", opt)
-vim.keymap.set("n", "gj", "<cmd>lua vim.diagnostic.goto_next()<CR>", opt)
 
-vim.keymap.set("n", "<leader>=", "<cmd>lua vim.lsp.buf.format { async = true }<CR>", opt)
--- 没用到
-vim.keymap.set("n", "<leader>q", "<cmd>lua vim.diagnostic.setloclist()<CR>", opt)
--- vim.keymap.set("n", "<C-k>", "<cmd>lua vim.lsp.buf.signature_help()<CR>", opt)
--- vim.keymap.set('n', '<space>wa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', opt)
--- vim.keymap.set('n', '<space>wr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>', opt)
--- vim.keymap.set('n', '<space>wl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>', opt)
--- vim.keymap.set('n', '<space>D', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opt)
+-- LSP (native)
+-- Rename
+vim.keymap.set("n", "<leader>r", vim.lsp.buf.rename, opt)
+-- Code action
+vim.keymap.set("n", "<leader>a", vim.lsp.buf.code_action, opt)
+-- Go to definition
+vim.keymap.set("n", "gd", vim.lsp.buf.definition, opt)
+-- Show documentation
+vim.keymap.set("n", "K", vim.lsp.buf.hover, opt)
+-- Go to declaration
+vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opt)
+-- Format code
+vim.keymap.set("n", "<leader>=", function()
+	vim.lsp.buf.format({ async = true })
+end, opt)
 
-vim.keymap.set("n", "<leader>f", function() require("telescope.builtin").find_files() end, {})
-vim.keymap.set("n", "<leader>g", function() require("telescope.builtin").live_grep() end, {})
-vim.keymap.set("n", "<leader>bf", function() require("telescope.builtin").buffers() end, {})
-vim.keymap.set("n", "<leader>hf", function() require("telescope.builtin").help_tags() end, {})
+-- Diagnostics (vim.diagnostic)
+-- Show diagnostics for the current line in a floating window
+vim.keymap.set("n", "<leader>q", vim.diagnostic.open_float, opt)
 
--- vim.keymap.set({ "n" }, "<c-\\>t", ":ToggleTerm<CR>", opt)
--- vim.keymap.set({ "n", "t" }, "<c-\\>s", ":TermSelect<CR>", opt)
--- vim.keymap.set({ "n", "t" }, "<c-\\>a", ":ToggleTerm dir=~/Desktop direction=horizontal name=desktop<CR>", opt)
+-- Fuzzy finder (Telescope)
+vim.keymap.set("n", "<leader>f", "<cmd>Telescope find_files<CR>", opt)
+vim.keymap.set("n", "<leader>g", "<cmd>Telescope live_grep<CR>", opt)
+vim.keymap.set("n", "<leader>b", "<cmd>Telescope buffers<CR>", opt)
+vim.keymap.set("n", "<leader>hf", "<cmd>Telescope help_tags<CR>", opt)
+
+-- Terminal (ToggleTerm)
+vim.keymap.set("n", "<c-\\>t", "<cmd>ToggleTerm direction=horizontal<CR>", opt)
+vim.keymap.set("n", "<c-\\>a", "<cmd>ToggleTerm direction=float<CR>", opt)
+vim.keymap.set("n", "<c-\\>s", "<cmd>ToggleTerm direction=vertical<CR>", opt)
